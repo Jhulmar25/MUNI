@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportar Incidente</title>
+    
+    <!-- Estilos CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            margin: auto;
+            text-align: left;
+        }
+        label {
+            font-weight: bold;
+        }
+        select, button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+    </style>
+
+    <!-- Leaflet.js para el mapa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+
+    <h2>Reportar Incidente</h2>
+
+    <form id="reporteForm">
+        <label for="usuario">Tipo de usuario:</label>
+        <select id="usuario">
+            <option value="motorizado">Sereno Motorizado</option>
+            <option value="pie">Sereno a Pie</option>
+            <option value="bicicleta">Sereno en Bicicleta</option>
+        </select>
+
+        <label for="tipo">Tipo de incidente:</label>
+        <select id="tipo">
+            <option value="choque">Choque</option>
+            <option value="incendio">Incendio</option>
+            <option value="robo">Robo</option>
+        </select>
+
+        <button type="button" onclick="reportar()">Enviar Reporte</button>
+    </form>
+
+    <div id="map"></div>
+
+    <script>
+        let map = L.map('map').setView([-12.0464, -77.0428], 13); // Coordenadas de Lima
+
+        // Agregar mapa base
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let marker;
+
+        // Obtener ubicación del usuario
+        function obtenerUbicacion() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    let lat = position.coords.latitude;
+                    let lon = position.coords.longitude;
+
+                    // Centrar el mapa en la ubicación del usuario
+                    map.setView([lat, lon], 15);
+
+                    // Agregar marcador
+                    if (!marker) {
+                        marker = L.marker([lat, lon]).addTo(map)
+                            .bindPopup("Tu ubicación actual").openPopup();
+                    } else {
+                        marker.setLatLng([lat, lon]);
+                    }
+                }, function (error) {
+                    alert("Error al obtener la ubicación: " + error.message);
+                });
+            } else {
+                alert("La geolocalización no es soportada en este navegador.");
+            }
+        }
+
+        // Reportar incidente y dibujar en el mapa
+        function reportar() {
+            let usuario = document.getElementById("usuario").value;
+            let tipo = document.getElementById("tipo").value;
+
+            if (!marker) {
+                alert("Primero activa la ubicación para reportar.");
+                return;
+            }
+
+            let latLng = marker.getLatLng();
+
+            // Agregar un nuevo marcador con el reporte
+            L.marker([latLng.lat, latLng.lng]).addTo(map)
+                .bindPopup(`<b>${usuario}</b><br>${tipo}`).openPopup();
+
+            alert("Reporte enviado correctamente.");
+        }
+
+        // Ejecutar la función al cargar la página
+        window.onload = obtenerUbicacion;
+    </script>
+
+</body>
+</html>
